@@ -160,7 +160,7 @@ final class Ajax_Posts_Carousel {
                 align-items: stretch;
                 gap: 1rem;
                 margin: 0 auto 2rem auto;
-                max-width: 1600px;
+                max-width: 900px;
             }
             
             .ajax-benefits-track-wrapper {
@@ -328,7 +328,7 @@ final class Ajax_Posts_Carousel {
                 border-radius: 12px;
                 padding: 2rem;
                 margin: 3rem auto 0 auto;
-                max-width: 1400px;
+                max-width: 900px;
                 text-align: center;
             }
             
