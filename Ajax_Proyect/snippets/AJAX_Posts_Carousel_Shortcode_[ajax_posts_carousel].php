@@ -447,6 +447,8 @@ final class Ajax_Posts_Carousel {
             if (this.config.autoplay) {
                 this.startAutoplay();
             }
+            // Ensure keyboard focusability for arrow keys
+            this.$wrapper.attr('tabindex', '0');
         }
         
         bindEvents() {
@@ -518,9 +520,7 @@ final class Ajax_Posts_Carousel {
         }
         
         getItemsPerView() {
-            const width = $(window).width();
-            if (width >= 1200) return 3;
-            if (width >= 768) return 2;
+            // For single-card carousel behavior, always show 1 item per view.
             return 1;
         }
         
