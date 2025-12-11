@@ -1,6 +1,6 @@
 <?php
 /**
- * AJAX Carousel Plugin - Versión Corregida para Code Snippets
+ * AJAX Systems Benefits Carousel - Carrusel Estático de Beneficios
  * Shortcode: [ajax_posts_carousel]
  */
 
@@ -12,11 +12,10 @@ if ( ! class_exists( 'Ajax_Posts_Carousel' ) ) {
 
 final class Ajax_Posts_Carousel {
     
-    const VERSION = '1.0.0';
+    const VERSION = '2.0.0';
     
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-        add_action( 'rest_api_init', array( $this, 'register_rest_routes' ) );
         add_shortcode( 'ajax_posts_carousel', array( $this, 'render_carousel_shortcode' ) );
     }
     
@@ -25,143 +24,99 @@ final class Ajax_Posts_Carousel {
         
         wp_add_inline_style( 'wp-block-library', $this->get_carousel_css() );
         wp_add_inline_script( 'jquery', $this->get_carousel_js() );
-        
-        wp_localize_script( 'jquery', 'ajaxPostsCarousel', array(
-            'ajaxUrl'  => esc_url_raw( rest_url( 'ajax-posts-carousel/v1/' ) ),
-            'nonce'    => wp_create_nonce( 'wp_rest' ),
-            'strings'  => array(
-                'loading'   => __( 'Cargando...', 'ajax-posts-carousel' ),
-                'error'     => __( 'Error al cargar el contenido', 'ajax-posts-carousel' ),
-                'noItems'   => __( 'No hay elementos para mostrar', 'ajax-posts-carousel' ),
-            )
-        ) );
     }
     
-    public function register_rest_routes() {
-        register_rest_route( 'ajax-posts-carousel/v1', '/items', array(
-            'methods'             => 'GET',
-            'callback'            => array( $this, 'get_carousel_items' ),
-            'permission_callback' => '__return_true',
-            'args'                => array(
-                'category' => array(
-                    'default'           => '',
-                    'sanitize_callback' => 'sanitize_text_field',
-                ),
-                'posts_per_page' => array(
-                    'default'           => 6,
-                    'sanitize_callback' => 'absint',
-                ),
-                'post_type' => array(
-                    'default'           => 'post',
-                    'sanitize_callback' => 'sanitize_text_field',
-                ),
+    private function get_static_benefits() {
+        return array(
+            array(
+                'number' => '1',
+                'title'  => 'Seguridad profesional sin cuotas',
+                'content' => 'Ajax ofrece tecnología que compite con las alarmas de empresas tradicionales, pero sin contratos ni mensualidades. Paga una vez y es tuya para siempre.'
             ),
-        ) );
-    }
-    
-    public function get_carousel_items( $request ) {
-        $post_type      = $request->get_param( 'post_type' );
-        $category       = $request->get_param( 'category' );
-        $posts_per_page = $request->get_param( 'posts_per_page' );
-        
-        $args = array(
-            'post_type'      => $post_type,
-            'posts_per_page' => $posts_per_page,
-            'post_status'    => 'publish',
-            'orderby'        => 'date',
-            'order'          => 'DESC',
+            array(
+                'number' => '2',
+                'title'  => 'Control total desde tu móvil',
+                'content' => 'Armado, desarmado, alertas, eventos, historial, cámaras opcionales… Todo desde una App rápida y encriptada. Tu móvil se convierte en tu central de seguridad.'
+            ),
+            array(
+                'number' => '3',
+                'title'  => 'Privacidad al 100 %',
+                'content' => 'A diferencia de otras compañías, Ajax no almacena tus datos, tus códigos ni tus imágenes. Todo se queda en tu casa y en tu teléfono.'
+            ),
+            array(
+                'number' => '4',
+                'title'  => 'Tecnología europea premiada',
+                'content' => 'Fabricado en Europa, Ajax es uno de los sistemas de seguridad más galardonados del continente por su fiabilidad, diseño, alcance inalámbrico y estabilidad.'
+            ),
+            array(
+                'number' => '5',
+                'title'  => 'Sensores precisos, rápidos y sin cables',
+                'content' => 'Detección de movimiento, apertura, humo, rotura de cristal, inundación, cámaras, sirenas… Todo inalámbrico y con batería de larga duración.'
+            ),
+            array(
+                'number' => '6',
+                'title'  => 'Alertas instantáneas y fiables',
+                'content' => 'La comunicación encriptada y los canales múltiples permiten recibir avisos en tu móvil más rápido que muchas centrales tradicionales.'
+            ),
+            array(
+                'number' => '7',
+                'title'  => 'Instalación rápida y sin obras',
+                'content' => 'Se instala en minutos, sin cables, sin taladros (en la mayoría de casos) y sin necesidad de técnicos.'
+            ),
         );
-        
-        if ( ! empty( $category ) ) {
-            $args['tax_query'] = array(
-                array(
-                    'taxonomy' => 'category',
-                    'field'    => 'slug',
-                    'terms'    => $category,
-                ),
-            );
-        }
-        
-        $query = new WP_Query( $args );
-        $items = array();
-        
-        if ( $query->have_posts() ) {
-            while ( $query->have_posts() ) {
-                $query->the_post();
-                
-                $post_id = get_the_ID();
-                
-                $items[] = array(
-                    'id'        => $post_id,
-                    'title'     => get_the_title(),
-                    'excerpt'   => wp_trim_words( get_the_excerpt(), 20 ),
-                    'permalink' => get_permalink(),
-                    'thumbnail' => get_the_post_thumbnail_url( $post_id, 'medium' ),
-                    'date'      => get_the_date(),
-                    'author'    => get_the_author(),
-                );
-            }
-            wp_reset_postdata();
-        }
-        
-        return rest_ensure_response( array(
-            'success' => true,
-            'items'   => $items,
-            'total'   => $query->found_posts,
-        ) );
     }
     
     public function render_carousel_shortcode( $atts ) {
         $atts = shortcode_atts( array(
-            'category'       => '',
-            'posts_per_page' => 6,
-            'post_type'      => 'post',
             'autoplay'       => 'true',
-            'autoplay_speed' => 3000,
+            'autoplay_speed' => 5000,
         ), $atts, 'ajax_posts_carousel' );
         
-        $category       = sanitize_text_field( $atts['category'] );
-        $posts_per_page = absint( $atts['posts_per_page'] );
-        $post_type      = sanitize_text_field( $atts['post_type'] );
         $autoplay       = filter_var( $atts['autoplay'], FILTER_VALIDATE_BOOLEAN );
         $autoplay_speed = absint( $atts['autoplay_speed'] );
         
+        $benefits = $this->get_static_benefits();
+        
         $data_attrs = sprintf(
-            'data-category="%s" data-posts-per-page="%d" data-post-type="%s" data-autoplay="%s" data-autoplay-speed="%d"',
-            esc_attr( $category ),
-            esc_attr( $posts_per_page ),
-            esc_attr( $post_type ),
+            'data-autoplay="%s" data-autoplay-speed="%d"',
             esc_attr( $autoplay ? 'true' : 'false' ),
             esc_attr( $autoplay_speed )
         );
         
         ob_start();
         ?>
-        <div class="ajax-posts-carousel-wrapper" <?php echo $data_attrs; ?>>
-            <div class="ajax-posts-carousel-loading">
-                <div class="ajax-posts-carousel-spinner"></div>
-                <p>Cargando carrusel...</p>
-            </div>
+        <div class="ajax-benefits-carousel-wrapper" <?php echo $data_attrs; ?>>
+            <h2 class="ajax-benefits-title">¿Por qué elegir AJAX Systems para proteger tu hogar?</h2>
             
-            <div class="ajax-posts-carousel-container" style="display: none;">
-                <button class="ajax-posts-carousel-nav ajax-posts-carousel-prev" aria-label="Anterior">
+            <div class="ajax-benefits-carousel-container">
+                <button class="ajax-benefits-nav ajax-benefits-prev" aria-label="Anterior">
                     <span>&lsaquo;</span>
                 </button>
                 
-                <div class="ajax-posts-carousel-track-wrapper">
-                    <div class="ajax-posts-carousel-track">
+                <div class="ajax-benefits-track-wrapper">
+                    <div class="ajax-benefits-track">
+                        <?php foreach ( $benefits as $benefit ) : ?>
+                            <div class="ajax-benefits-item">
+                                <div class="ajax-benefits-item-inner">
+                                    <div class="ajax-benefits-number"><?php echo esc_html( $benefit['number'] ); ?></div>
+                                    <h3 class="ajax-benefits-item-title"><?php echo esc_html( $benefit['title'] ); ?></h3>
+                                    <p class="ajax-benefits-item-content"><?php echo esc_html( $benefit['content'] ); ?></p>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
                     </div>
                 </div>
                 
-                <button class="ajax-posts-carousel-nav ajax-posts-carousel-next" aria-label="Siguiente">
+                <button class="ajax-benefits-nav ajax-benefits-next" aria-label="Siguiente">
                     <span>&rsaquo;</span>
                 </button>
             </div>
             
-            <div class="ajax-posts-carousel-dots"></div>
+            <div class="ajax-benefits-dots"></div>
             
-            <div class="ajax-posts-carousel-error" style="display: none;">
-                <p>Error al cargar el carrusel.</p>
+            <div class="ajax-benefits-summary">
+                <h3>En resumen</h3>
+                <p>Ajax es la mejor opción si buscas seguridad profesional, sin cuotas, con control total desde tu smartphone. Y todo con un coste menor que el de un móvil nuevo.</p>
             </div>
         </div>
         <?php
@@ -171,258 +126,288 @@ final class Ajax_Posts_Carousel {
     private function get_carousel_css() {
         return '
             :root {
-                --posts-carousel-primary: #00aa66;
-                --posts-carousel-secondary: #333;
-                --posts-carousel-bg: #fff;
-                --posts-carousel-border: #e0e0e0;
-                --posts-carousel-shadow: rgba(0, 0, 0, 0.1);
-                --posts-carousel-transition: 0.3s ease;
-                --posts-carousel-spacing: 1rem;
+                --ajax-benefits-primary: #00aa66;
+                --ajax-benefits-secondary: #333;
+                --ajax-benefits-bg: #fff;
+                --ajax-benefits-border: #e0e0e0;
+                --ajax-benefits-shadow: rgba(0, 0, 0, 0.1);
+                --ajax-benefits-transition: 0.3s ease;
+                --ajax-benefits-spacing: 1.5rem;
             }
             
-            .ajax-posts-carousel-wrapper {
+            .ajax-benefits-carousel-wrapper {
                 position: relative;
                 width: 100%;
-                margin: 2rem auto;
-                max-width: 1200px;
+                margin: 0;
+                padding: 3rem 2rem;
+                background: #000000;
             }
             
-            .ajax-posts-carousel-loading {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 3rem;
+            .ajax-benefits-title {
                 text-align: center;
+                color: #ffffff;
+                font-size: 2.5rem;
+                margin: 0 auto 3rem auto;
+                max-width: 1400px;
+                font-weight: 700;
+                line-height: 1.2;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             }
             
-            .ajax-posts-carousel-spinner {
-                width: 50px;
-                height: 50px;
-                border: 4px solid var(--posts-carousel-border);
-                border-top-color: var(--posts-carousel-primary);
-                border-radius: 50%;
-                animation: posts-carousel-spin 0.8s linear infinite;
-            }
-            
-            @keyframes posts-carousel-spin {
-                to { transform: rotate(360deg); }
-            }
-            
-            .ajax-posts-carousel-loading p {
-                margin-top: 1rem;
-                color: var(--posts-carousel-secondary);
-                font-size: 1rem;
-            }
-            
-            .ajax-posts-carousel-container {
+            .ajax-benefits-carousel-container {
                 position: relative;
                 display: flex;
-                align-items: center;
+                align-items: stretch;
                 gap: 1rem;
+                margin: 0 auto 2rem auto;
+                max-width: 1600px;
             }
             
-            .ajax-posts-carousel-track-wrapper {
+            .ajax-benefits-track-wrapper {
                 flex: 1;
                 overflow: hidden;
                 position: relative;
+                min-height: 320px;
             }
             
-            .ajax-posts-carousel-track {
+            .ajax-benefits-track {
                 display: flex;
-                transition: transform var(--posts-carousel-transition);
+                transition: transform var(--ajax-benefits-transition);
                 will-change: transform;
+                height: 100%;
             }
             
-            .ajax-posts-carousel-item {
+            .ajax-benefits-item {
                 flex: 0 0 100%;
-                padding: 0 var(--posts-carousel-spacing);
+                padding: 0 var(--ajax-benefits-spacing);
                 box-sizing: border-box;
+                height: 100%;
             }
             
-            .ajax-posts-carousel-item-inner {
-                background: var(--posts-carousel-bg);
-                border: 1px solid var(--posts-carousel-border);
-                border-radius: 8px;
-                overflow: hidden;
-                transition: transform var(--posts-carousel-transition), box-shadow var(--posts-carousel-transition);
+            .ajax-benefits-item-inner {
+                background: var(--ajax-benefits-bg);
+                border: 2px solid var(--ajax-benefits-primary);
+                border-radius: 12px;
+                padding: 2.5rem;
                 height: 100%;
                 display: flex;
                 flex-direction: column;
-            }
-            
-            .ajax-posts-carousel-item-inner:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 8px 20px var(--posts-carousel-shadow);
-            }
-            
-            .ajax-posts-carousel-item-image {
+                justify-content: space-between;
+                transition: all var(--ajax-benefits-transition);
                 position: relative;
-                width: 100%;
-                padding-top: 66.67%;
                 overflow: hidden;
-                background: var(--posts-carousel-border);
             }
             
-            .ajax-posts-carousel-item-image img {
+            .ajax-benefits-item-inner::before {
+                content: "";
                 position: absolute;
                 top: 0;
                 left: 0;
                 width: 100%;
-                height: 100%;
-                object-fit: cover;
-                transition: transform var(--posts-carousel-transition);
+                height: 4px;
+                background: linear-gradient(90deg, var(--ajax-benefits-primary) 0%, #00dd88 100%);
             }
             
-            .ajax-posts-carousel-item-inner:hover .ajax-posts-carousel-item-image img {
-                transform: scale(1.05);
+            .ajax-benefits-item-inner:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 12px 32px var(--ajax-benefits-shadow);
+                border-color: #00dd88;
             }
             
-            .ajax-posts-carousel-item-content {
-                padding: 1.5rem;
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .ajax-posts-carousel-item-title {
-                margin: 0 0 0.75rem 0;
-                font-size: 1.25rem;
-                line-height: 1.4;
-            }
-            
-            .ajax-posts-carousel-item-title a {
-                color: var(--posts-carousel-secondary);
-                text-decoration: none;
-                transition: color var(--posts-carousel-transition);
-            }
-            
-            .ajax-posts-carousel-item-title a:hover {
-                color: var(--posts-carousel-primary);
-            }
-            
-            .ajax-posts-carousel-item-meta {
-                display: flex;
-                gap: 1rem;
-                margin-bottom: 0.75rem;
-                font-size: 0.875rem;
-                color: #666;
-            }
-            
-            .ajax-posts-carousel-item-excerpt {
-                margin: 0 0 1rem 0;
-                color: #555;
-                line-height: 1.6;
-                flex: 1;
-            }
-            
-            .ajax-posts-carousel-item-link {
-                display: inline-flex;
-                align-items: center;
-                color: var(--posts-carousel-primary);
-                text-decoration: none;
-                font-weight: 600;
-                transition: color var(--posts-carousel-transition);
-            }
-            
-            .ajax-posts-carousel-nav {
-                position: relative;
-                width: 48px;
-                height: 48px;
-                border: 2px solid var(--posts-carousel-border);
-                background: var(--posts-carousel-bg);
-                color: var(--posts-carousel-secondary);
+            .ajax-benefits-number {
+                position: absolute;
+                top: -15px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                background: linear-gradient(135deg, var(--ajax-benefits-primary) 0%, #00dd88 100%);
+                color: white;
                 border-radius: 50%;
-                cursor: pointer;
-                transition: all var(--posts-carousel-transition);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 2rem;
+                font-size: 1.5rem;
+                font-weight: 700;
+                box-shadow: 0 4px 12px rgba(0, 170, 102, 0.4);
+            }
+            
+            .ajax-benefits-item-title {
+                margin: 0 0 1rem 0;
+                font-size: 1.5rem;
+                line-height: 1.3;
+                color: var(--ajax-benefits-secondary);
+                font-weight: 700;
+                padding-right: 60px;
+            }
+            
+            .ajax-benefits-item-content {
+                margin: 0;
+                color: #555;
+                line-height: 1.7;
+                font-size: 1.05rem;
+                flex: 1;
+            }
+            
+            .ajax-benefits-nav {
+                position: relative;
+                width: 56px;
+                height: 56px;
+                border: 3px solid var(--ajax-benefits-primary);
+                background: rgba(0, 170, 102, 0.1);
+                color: var(--ajax-benefits-primary);
+                border-radius: 50%;
+                cursor: pointer;
+                transition: all var(--ajax-benefits-transition);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 2.5rem;
                 line-height: 1;
                 flex-shrink: 0;
+                backdrop-filter: blur(10px);
             }
             
-            .ajax-posts-carousel-nav:hover:not(:disabled) {
-                background: var(--posts-carousel-primary);
+            .ajax-benefits-nav:hover:not(:disabled) {
+                background: var(--ajax-benefits-primary);
                 color: white;
-                border-color: var(--posts-carousel-primary);
-                transform: scale(1.1);
+                border-color: #00dd88;
+                transform: scale(1.15);
+                box-shadow: 0 6px 20px rgba(0, 170, 102, 0.4);
             }
             
-            .ajax-posts-carousel-nav:disabled {
+            .ajax-benefits-nav:disabled {
                 opacity: 0.3;
                 cursor: not-allowed;
             }
             
-            .ajax-posts-carousel-nav:focus {
-                outline: 2px solid var(--posts-carousel-primary);
-                outline-offset: 2px;
+            .ajax-benefits-nav:focus {
+                outline: 3px solid var(--ajax-benefits-primary);
+                outline-offset: 3px;
             }
             
-            .ajax-posts-carousel-dots {
+            .ajax-benefits-dots {
                 display: flex;
                 justify-content: center;
-                gap: 0.5rem;
-                margin-top: 1.5rem;
+                gap: 0.75rem;
+                margin: 2rem auto;
+                max-width: 1400px;
             }
             
-            .ajax-posts-carousel-dot {
-                width: 12px;
-                height: 12px;
-                border: 2px solid var(--posts-carousel-border);
+            .ajax-benefits-dot {
+                width: 14px;
+                height: 14px;
+                border: 2px solid rgba(0, 170, 102, 0.5);
                 background: transparent;
                 border-radius: 50%;
                 cursor: pointer;
-                transition: all var(--posts-carousel-transition);
+                transition: all var(--ajax-benefits-transition);
                 padding: 0;
             }
             
-            .ajax-posts-carousel-dot:hover {
-                border-color: var(--posts-carousel-primary);
-                transform: scale(1.2);
+            .ajax-benefits-dot:hover {
+                border-color: var(--ajax-benefits-primary);
+                background: rgba(0, 170, 102, 0.3);
+                transform: scale(1.3);
             }
             
-            .ajax-posts-carousel-dot.active {
-                background: var(--posts-carousel-primary);
-                border-color: var(--posts-carousel-primary);
+            .ajax-benefits-dot.active {
+                background: var(--ajax-benefits-primary);
+                border-color: var(--ajax-benefits-primary);
+                box-shadow: 0 0 12px rgba(0, 170, 102, 0.6);
             }
             
-            .ajax-posts-carousel-dot:focus {
-                outline: 2px solid var(--posts-carousel-primary);
-                outline-offset: 2px;
+            .ajax-benefits-dot:focus {
+                outline: 2px solid var(--ajax-benefits-primary);
+                outline-offset: 3px;
             }
             
-            .ajax-posts-carousel-error {
+            .ajax-benefits-summary {
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                border: 2px solid rgba(0, 170, 102, 0.3);
+                border-radius: 12px;
                 padding: 2rem;
+                margin: 3rem auto 0 auto;
+                max-width: 1400px;
                 text-align: center;
-                color: #c00;
-                background: #ffe0e0;
-                border: 1px solid #ffb0b0;
-                border-radius: 4px;
             }
             
-            .ajax-posts-carousel-error p {
+            .ajax-benefits-summary h3 {
+                color: var(--ajax-benefits-primary);
+                font-size: 1.8rem;
+                margin: 0 0 1rem 0;
+                font-weight: 700;
+            }
+            
+            .ajax-benefits-summary p {
+                color: #e0e0e0;
+                font-size: 1.15rem;
+                line-height: 1.6;
                 margin: 0;
             }
             
-            @media (min-width: 768px) {
-                .ajax-posts-carousel-item {
-                    flex: 0 0 50%;
+            @media (max-width: 768px) {
+                .ajax-benefits-carousel-wrapper {
+                    padding: 2rem 1rem;
                 }
                 
-                .ajax-posts-carousel-item-title {
-                    font-size: 1.125rem;
+                .ajax-benefits-title {
+                    font-size: 1.75rem;
+                }
+                
+                .ajax-benefits-track-wrapper {
+                    min-height: 280px;
+                }
+                
+                .ajax-benefits-item-inner {
+                    padding: 2rem 1.5rem;
+                }
+                
+                .ajax-benefits-item-title {
+                    font-size: 1.25rem;
+                }
+                
+                .ajax-benefits-item-content {
+                    font-size: 1rem;
+                }
+                
+                .ajax-benefits-nav {
+                    width: 48px;
+                    height: 48px;
+                    font-size: 2rem;
+                }
+                
+                .ajax-benefits-number {
+                    width: 45px;
+                    height: 45px;
+                    font-size: 1.3rem;
+                    top: -12px;
+                    right: 15px;
+                }
+                
+                .ajax-benefits-summary {
+                    padding: 1.5rem;
+                }
+                
+                .ajax-benefits-summary h3 {
+                    font-size: 1.5rem;
+                }
+                
+                .ajax-benefits-summary p {
+                    font-size: 1rem;
+                }
+            }
+            
+            /* Fuerza una tarjeta por vista en todas las resoluciones para mayor ancho */
+            @media (min-width: 768px) {
+                .ajax-benefits-item {
+                    flex: 0 0 100%;
                 }
             }
             
             @media (min-width: 1200px) {
-                .ajax-posts-carousel-item {
-                    flex: 0 0 33.333%;
-                }
-                
-                .ajax-posts-carousel-wrapper {
-                    margin: 3rem auto;
+                .ajax-benefits-item {
+                    flex: 0 0 100%;
                 }
             }
         ';
@@ -433,27 +418,22 @@ final class Ajax_Posts_Carousel {
 (function($) {
     'use strict';
     
-    class AjaxPostsCarousel {
+    class AjaxBenefitsCarousel {
         constructor(element) {
             this.\$wrapper = $(element);
-            this.\$container = this.\$wrapper.find('.ajax-posts-carousel-container');
-            this.\$track = this.\$wrapper.find('.ajax-posts-carousel-track');
-            this.\$loading = this.\$wrapper.find('.ajax-posts-carousel-loading');
-            this.\$error = this.\$wrapper.find('.ajax-posts-carousel-error');
-            this.\$dots = this.\$wrapper.find('.ajax-posts-carousel-dots');
-            this.\$prevBtn = this.\$wrapper.find('.ajax-posts-carousel-prev');
-            this.\$nextBtn = this.\$wrapper.find('.ajax-posts-carousel-next');
+            this.\$container = this.\$wrapper.find('.ajax-benefits-carousel-container');
+            this.\$track = this.\$wrapper.find('.ajax-benefits-track');
+            this.\$dots = this.\$wrapper.find('.ajax-benefits-dots');
+            this.\$prevBtn = this.\$wrapper.find('.ajax-benefits-prev');
+            this.\$nextBtn = this.\$wrapper.find('.ajax-benefits-next');
             
             this.currentIndex = 0;
-            this.items = [];
+            this.totalItems = this.\$track.find('.ajax-benefits-item').length;
             this.autoplayTimer = null;
             
             this.config = {
-                category: this.\$wrapper.data('category') || '',
-                postsPerPage: this.\$wrapper.data('posts-per-page') || 6,
-                postType: this.\$wrapper.data('post-type') || 'post',
                 autoplay: this.\$wrapper.data('autoplay') === true || this.\$wrapper.data('autoplay') === 'true',
-                autoplaySpeed: this.\$wrapper.data('autoplay-speed') || 3000
+                autoplaySpeed: this.\$wrapper.data('autoplay-speed') || 5000
             };
             
             this.init();
@@ -461,7 +441,12 @@ final class Ajax_Posts_Carousel {
         
         init() {
             this.bindEvents();
-            this.loadItems();
+            this.createDots();
+            this.updateCarousel();
+            
+            if (this.config.autoplay) {
+                this.startAutoplay();
+            }
         }
         
         bindEvents() {
@@ -510,89 +495,13 @@ final class Ajax_Posts_Carousel {
             }
         }
         
-        loadItems() {
-            this.showLoading();
-            
-            const params = new URLSearchParams({
-                category: this.config.category,
-                posts_per_page: this.config.postsPerPage,
-                post_type: this.config.postType
-            });
-            
-            fetch(ajaxPostsCarousel.ajaxUrl + 'items?' + params.toString(), {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': ajaxPostsCarousel.nonce
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success && data.items && data.items.length > 0) {
-                    this.items = data.items;
-                    this.renderItems();
-                    this.showCarousel();
-                    
-                    if (this.config.autoplay) {
-                        this.startAutoplay();
-                    }
-                } else {
-                    this.showError(ajaxPostsCarousel.strings.noItems);
-                }
-            })
-            .catch(error => {
-                console.error('Error loading carousel items:', error);
-                this.showError(ajaxPostsCarousel.strings.error);
-            });
-        }
-        
-        renderItems() {
-            this.\$track.empty();
-            
-            this.items.forEach((item, index) => {
-                const itemEl = this.createItemElement(item, index);
-                this.\$track.append(itemEl);
-            });
-            
-            this.createDots();
-            this.updateCarousel();
-        }
-        
-        createItemElement(item, index) {
-            const thumbnail = item.thumbnail || 'https://via.placeholder.com/400x300?text=Sin+Imagen';
-            
-            return $('<div class=\"ajax-posts-carousel-item\" data-index=\"' + index + '\">' +
-                '<div class=\"ajax-posts-carousel-item-inner\">' +
-                    '<div class=\"ajax-posts-carousel-item-image\">' +
-                        '<img src=\"' + this.escapeHtml(thumbnail) + '\" alt=\"' + this.escapeHtml(item.title) + '\" loading=\"lazy\">' +
-                    '</div>' +
-                    '<div class=\"ajax-posts-carousel-item-content\">' +
-                        '<h3 class=\"ajax-posts-carousel-item-title\">' +
-                            '<a href=\"' + this.escapeHtml(item.permalink) + '\">' + this.escapeHtml(item.title) + '</a>' +
-                        '</h3>' +
-                        '<div class=\"ajax-posts-carousel-item-meta\">' +
-                            '<span class=\"ajax-posts-carousel-item-date\">' + this.escapeHtml(item.date) + '</span>' +
-                            '<span class=\"ajax-posts-carousel-item-author\">' + this.escapeHtml(item.author) + '</span>' +
-                        '</div>' +
-                        '<p class=\"ajax-posts-carousel-item-excerpt\">' + this.escapeHtml(item.excerpt) + '</p>' +
-                        '<a href=\"' + this.escapeHtml(item.permalink) + '\" class=\"ajax-posts-carousel-item-link\">Leer más &rarr;</a>' +
-                    '</div>' +
-                '</div>' +
-            '</div>');
-        }
-        
         createDots() {
             this.\$dots.empty();
             const itemsPerView = this.getItemsPerView();
-            const totalSlides = Math.ceil(this.items.length / itemsPerView);
+            const totalSlides = Math.ceil(this.totalItems / itemsPerView);
             
             for (let i = 0; i < totalSlides; i++) {
-                const dot = $('<button class=\"ajax-posts-carousel-dot\" aria-label=\"Ir a slide ' + (i + 1) + '\"></button>');
+                const dot = $('<button class=\"ajax-benefits-dot\" aria-label=\"Ir a slide ' + (i + 1) + '\"></button>');
                 dot.on('click', () => {
                     this.goToSlide(i * itemsPerView);
                 });
@@ -604,8 +513,8 @@ final class Ajax_Posts_Carousel {
         
         updateDots() {
             const currentSlide = Math.floor(this.currentIndex / this.getItemsPerView());
-            this.\$dots.find('.ajax-posts-carousel-dot').removeClass('active');
-            this.\$dots.find('.ajax-posts-carousel-dot').eq(currentSlide).addClass('active');
+            this.\$dots.find('.ajax-benefits-dot').removeClass('active');
+            this.\$dots.find('.ajax-benefits-dot').eq(currentSlide).addClass('active');
         }
         
         getItemsPerView() {
@@ -618,7 +527,7 @@ final class Ajax_Posts_Carousel {
         updateCarousel() {
             const itemsPerView = this.getItemsPerView();
             const itemWidth = 100 / itemsPerView;
-            const maxIndex = this.items.length - itemsPerView;
+            const maxIndex = this.totalItems - itemsPerView;
             
             if (this.currentIndex > maxIndex) {
                 this.currentIndex = Math.max(0, maxIndex);
@@ -627,8 +536,8 @@ final class Ajax_Posts_Carousel {
             const translateX = -(this.currentIndex * itemWidth);
             this.\$track.css('transform', 'translateX(' + translateX + '%)');
             
-            this.\$prevBtn.prop('disabled', this.currentIndex === 0);
-            this.\$nextBtn.prop('disabled', this.currentIndex >= maxIndex);
+            this.$prevBtn.prop('disabled', this.currentIndex === 0);
+            this.$nextBtn.prop('disabled', false);
             
             this.updateDots();
         }
@@ -643,21 +552,20 @@ final class Ajax_Posts_Carousel {
         
         next() {
             const itemsPerView = this.getItemsPerView();
-            const maxIndex = this.items.length - itemsPerView;
+            const maxIndex = this.totalItems - itemsPerView;
             
             if (this.currentIndex < maxIndex) {
                 this.currentIndex++;
-                this.updateCarousel();
-                this.resetAutoplay();
-            } else if (this.config.autoplay) {
+            } else {
                 this.currentIndex = 0;
-                this.updateCarousel();
             }
+            this.updateCarousel();
+            this.resetAutoplay();
         }
         
         goToSlide(index) {
             const itemsPerView = this.getItemsPerView();
-            const maxIndex = this.items.length - itemsPerView;
+            const maxIndex = this.totalItems - itemsPerView;
             this.currentIndex = Math.max(0, Math.min(index, maxIndex));
             this.updateCarousel();
             this.resetAutoplay();
@@ -684,36 +592,11 @@ final class Ajax_Posts_Carousel {
                 this.startAutoplay();
             }
         }
-        
-        showLoading() {
-            this.\$loading.show();
-            this.\$container.hide();
-            this.\$error.hide();
-        }
-        
-        showCarousel() {
-            this.\$loading.hide();
-            this.\$container.show();
-            this.\$error.hide();
-        }
-        
-        showError(message) {
-            this.\$loading.hide();
-            this.\$container.hide();
-            this.\$error.find('p').text(message);
-            this.\$error.show();
-        }
-        
-        escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
     }
     
     $(document).ready(function() {
-        $('.ajax-posts-carousel-wrapper').each(function() {
-            new AjaxPostsCarousel(this);
+        $('.ajax-benefits-carousel-wrapper').each(function() {
+            new AjaxBenefitsCarousel(this);
         });
     });
     
