@@ -9,11 +9,11 @@ table.comparison-table {
     border-collapse: separate;
     border-spacing: 0;
     margin: 40px 0;
-    background: #1a1a1a;
+    background: #f5f5f5; /* Fondo claro para mejor legibilidad */
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    border: 2px solid #333;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    border: 2px solid #ddd;
 }
 
 /* Encabezado de la tabla */
@@ -35,12 +35,12 @@ table.comparison-table thead th {
 .wp-block-table tbody td:first-child,
 table.comparison-table tbody th,
 table.comparison-table tbody td:first-child {
-    background: #2a2a2a;
+    background: #eef7f2; /* Columna de características más clara */
     font-weight: 600;
-    color: #ffffff;
+    color: #1a1a1a;
     text-align: left;
     padding: 18px 20px;
-    border-right: 2px solid #333;
+    border-right: 2px solid #ddd;
 }
 
 /* Celdas de contenido */
@@ -48,35 +48,35 @@ table.comparison-table tbody td:first-child {
 table.comparison-table tbody td {
     padding: 18px 15px;
     text-align: center;
-    border-bottom: 1px solid #333;
-    color: #ddd;
+    border-bottom: 1px solid #e6e6e6;
+    color: #222; /* Texto oscuro sobre fondo claro */
     font-size: 15px;
     vertical-align: middle;
-    background: #1a1a1a;
+    background: #ffffff; /* Celdas con fondo blanco */
 }
 
 /* Filas alternas */
 .wp-block-table tbody tr:nth-child(even) td:not(:first-child),
 table.comparison-table tbody tr:nth-child(even) td:not(:first-child) {
-    background: #222;
+    background: #f9fafb; /* Filas alternas claras */
 }
 
 .wp-block-table tbody tr:nth-child(odd) td:not(:first-child),
 table.comparison-table tbody tr:nth-child(odd) td:not(:first-child) {
-    background: #1a1a1a;
+    background: #ffffff;
 }
 
 /* Efecto hover en filas */
 .wp-block-table tbody tr:hover td,
 table.comparison-table tbody tr:hover td {
-    background: #2a2a2a !important;
+    background: #eef7f2 !important; /* Hover suave y claro */
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(90, 228, 170, 0.3);
+    box-shadow: 0 2px 8px rgba(90, 228, 170, 0.15);
 }
 
 .wp-block-table tbody tr:hover td:first-child,
 table.comparison-table tbody tr:hover td:first-child {
-    background: #333 !important;
+    background: #e3f3ea !important;
 }
 
 /* Símbolos de check - Verde brillante */
@@ -102,7 +102,7 @@ table.comparison-table tbody td > *:contains('✘') {
 /* Estilo para valores numéricos y texto especial */
 .wp-block-table tbody td strong,
 table.comparison-table tbody td strong {
-    color: #5ae4aa;
+    color: #00aa66; /* Mantener acento en tono verde */
     font-weight: 700;
 }
 
@@ -152,7 +152,7 @@ table.comparison-table tbody th {
 /* Sombra adicional para destacar */
 .wp-block-table:hover,
 table.comparison-table:hover {
-    box-shadow: 0 6px 30px rgba(90, 228, 170, 0.2);
+    box-shadow: 0 6px 30px rgba(90, 228, 170, 0.12);
     transition: box-shadow 0.3s ease;
 }
 </style>
