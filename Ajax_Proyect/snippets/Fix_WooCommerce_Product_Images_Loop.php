@@ -1,6 +1,7 @@
 <?php
 /**
  * Code Snippet: Fix WooCommerce Product Images
+ * Version: 2.0 - OPTIMIZADO (Sin flash visual)
  * 
  * Descripción: Corrige el problema de imágenes incorrectas en productos WooCommerce.
  *              El tema Ona Architecture está mostrando una imagen hardcodeada (wp-image-175)
@@ -14,10 +15,14 @@
  * - La imagen del starter-kit se muestra en lugar de la featured_media de cada producto
  * - El template del tema tiene la imagen hardcodeada
  * 
- * Solución:
- * - Eliminar la imagen incorrecta del contenido con JavaScript (fallback)
- * - Filtrar el contenido del producto para eliminar imágenes incorrectas
- * - Forzar el uso de la imagen destacada correcta EN LA COLUMNA IZQUIERDA con dimensiones 500x500px
+ * Solución v2.0 (Optimizada - Sin Flash Visual):
+ * 1. Output Buffer: Modifica el HTML completo ANTES de enviarlo al navegador (server-side)
+ * 2. CSS Inline: Oculta imágenes incorrectas inmediatamente con display:none
+ * 3. JavaScript Early: Se ejecuta en <head> lo antes posible (wp_head prioridad 1)
+ * 4. Multiple Attempts: JavaScript se ejecuta 3 veces (inmediato, 50ms, 150ms)
+ * 5. Filtros PHP: Elimina imágenes incorrectas del contenido antes de renderizar
+ * 
+ * Resultado: La imagen incorrecta NUNCA se ve, sin flash visual, transición suave
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -44,7 +49,7 @@ add_action( 'woocommerce_before_single_product_summary', 'woocommerce_show_produ
 
 /**
  * Filtrar el contenido del producto para eliminar bloques de imagen incorrectos
- * que el tema FSE puede estar insertando
+ * que el tema FSE puede estar insertando - SERVER SIDE (sin flash visual)
  */
 add_filter( 'the_content', 'ajax_remove_incorrect_product_images', 5 );
 function ajax_remove_incorrect_product_images( $content ) {
@@ -72,11 +77,61 @@ return $content;
 }
 
 /**
- * JavaScript para eliminar la imagen incorrecta del DOM
- * y reemplazarla con la imagen destacada correcta EN LA COLUMNA IZQUIERDA (500x500px)
+ * Interceptar y modificar el HTML completo ANTES de enviarlo al navegador
+ * Esto elimina el "flash" de imagen incorrecta
  */
-add_action( 'wp_footer', 'ajax_remove_incorrect_image_js', 999 );
-function ajax_remove_incorrect_image_js() {
+add_action( 'template_redirect', 'ajax_start_output_buffer_image_fix' );
+function ajax_start_output_buffer_image_fix() {
+// Solo en páginas de producto
+if ( is_product() ) {
+ob_start( 'ajax_fix_product_images_in_buffer' );
+}
+}
+
+function ajax_fix_product_images_in_buffer( $buffer ) {
+// Si no es HTML, devolver sin modificar
+if ( stripos( $buffer, '<html' ) === false ) {
+return $buffer;
+}
+
+// Eliminar imagen wp-image-175 (starter-kit hardcodeado)
+$buffer = preg_replace(
+'/<figure[^>]*class="[^"]*wp-image-175[^"]*"[^>]*>.*?<\/figure>/is',
+'',
+$buffer
+);
+
+// Eliminar cualquier <img> con wp-image-175
+$buffer = preg_replace(
+'/<img[^>]*class="[^"]*wp-image-175[^"]*"[^>]*\/?>/is',
+'',
+$buffer
+);
+
+// Eliminar imágenes que contengan "starter-kit" en src
+$buffer = preg_replace(
+'/<img[^>]*src="[^"]*starter-kit[^"]*"[^>]*\/?>/is',
+'',
+$buffer
+);
+
+// Eliminar figures que contengan starter-kit
+$buffer = preg_replace(
+'/<figure[^>]*>.*?<img[^>]*starter-kit[^>]*>.*?<\/figure>/is',
+'',
+$buffer
+);
+
+return $buffer;
+}
+
+/**
+ * JavaScript FALLBACK para eliminar imagen incorrecta del DOM
+ * Solo se ejecuta si el filtro server-side no funcionó
+ * Optimizado para ejecutarse lo antes posible y minimizar flash visual
+ */
+add_action( 'wp_head', 'ajax_remove_incorrect_image_js_early', 1 );
+function ajax_remove_incorrect_image_js_early() {
 
 // Solo en páginas de producto
 if ( ! is_product() ) {
@@ -101,8 +156,19 @@ $image_alt = get_post_meta( $thumbnail_id, '_wp_attachment_image_alt', true );
 $product_name = $product->get_name();
 
 ?>
+<style>
+/* Ocultar imagen incorrecta INMEDIATAMENTE con CSS */
+.wp-image-175,
+img[src*="starter-kit"] {
+display: none !important;
+opacity: 0 !important;
+visibility: hidden !important;
+}
+</style>
 <script type="text/javascript">
 (function() {
+'use strict';
+
 var correctImageData = {
 url: <?php echo json_encode( $image_url ); ?>,
 srcset: <?php echo json_encode( $image_srcset ); ?>,
@@ -110,14 +176,8 @@ alt: <?php echo json_encode( $image_alt ? $image_alt : $product_name ); ?>,
 productName: <?php echo json_encode( $product_name ); ?>
 };
 
-// Esperar a que el DOM esté listo
-if (document.readyState === 'loading') {
-document.addEventListener('DOMContentLoaded', fixProductImage);
-} else {
-fixProductImage();
-}
-
-function fixProductImage() {
+// Ejecutar lo ANTES posible - incluso antes de DOMContentLoaded
+function fixProductImageImmediate() {
 // 1. Eliminar imagen incorrecta wp-image-175 (starter-kit)
 var incorrectImages = document.querySelectorAll('.wp-image-175, img[src*="starter-kit"]');
 
@@ -184,9 +244,23 @@ imageColumn.appendChild(imageContainer);
 
 console.log('[Ajax Fix] Imagen 500x500 insertada en columna correcta');
 } else {
-console.error('[Ajax Fix] No se encontró columna de imagen o URL inválida');
+console.warn('[Ajax Fix] No se encontró columna de imagen o URL inválida');
 }
 }
+
+// Ejecutar múltiples veces para capturar diferentes estados de carga
+if (document.readyState === 'loading') {
+// Ejecutar apenas sea posible
+document.addEventListener('DOMContentLoaded', fixProductImageImmediate);
+} else {
+// DOM ya cargado, ejecutar inmediatamente
+fixProductImageImmediate();
+}
+
+// Ejecutar también después de un pequeño delay como seguridad adicional
+setTimeout(fixProductImageImmediate, 50);
+setTimeout(fixProductImageImmediate, 150);
+
 })();
 </script>
 <?php
