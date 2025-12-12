@@ -12,9 +12,18 @@ if ( ! class_exists( 'Ajax_Posts_Carousel' ) ) {
 
 final class Ajax_Posts_Carousel {
     
-    const VERSION = '2.0.0';
+    const VERSION = '2.0.1';
     
-    public function __construct() {
+    private static $instance = null;
+    
+    public static function get_instance() {
+        if ( null === self::$instance ) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+    
+    private function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
         add_shortcode( 'ajax_posts_carousel', array( $this, 'render_carousel_shortcode' ) );
     }
@@ -131,8 +140,9 @@ final class Ajax_Posts_Carousel {
                 --ajax-benefits-bg: #fff;
                 --ajax-benefits-border: #e0e0e0;
                 --ajax-benefits-shadow: rgba(0, 0, 0, 0.1);
-                --ajax-benefits-transition: 0.3s ease;
+                --ajax-benefits-transition: 400ms ease-in-out;
                 --ajax-benefits-spacing: 1.5rem;
+                --ajax-benefits-item-width: 100; /* ancho completo de la tarjeta */
             }
             
             .ajax-benefits-carousel-wrapper {
@@ -157,7 +167,7 @@ final class Ajax_Posts_Carousel {
             .ajax-benefits-carousel-container {
                 position: relative;
                 display: flex;
-                align-items: stretch;
+                align-items: center;
                 gap: 1rem;
                 margin: 0 auto 2rem auto;
                 max-width: 900px;
@@ -172,7 +182,7 @@ final class Ajax_Posts_Carousel {
             
             .ajax-benefits-track {
                 display: flex;
-                transition: transform var(--ajax-benefits-transition);
+                transition: transform 400ms ease-in-out;
                 will-change: transform;
                 height: 100%;
             }
@@ -190,6 +200,7 @@ final class Ajax_Posts_Carousel {
                 border-radius: 12px;
                 padding: 2.5rem;
                 height: 100%;
+                min-height: 350px;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -427,13 +438,18 @@ final class Ajax_Posts_Carousel {
             this.\$prevBtn = this.\$wrapper.find('.ajax-benefits-prev');
             this.\$nextBtn = this.\$wrapper.find('.ajax-benefits-next');
             
+            if (this.\$wrapper.length === 0 || this.\$track.length === 0) {
+                console.error('Ajax Benefits Carousel: Required elements not found');
+                return;
+            }
+            
             this.currentIndex = 0;
             this.totalItems = this.\$track.find('.ajax-benefits-item').length;
             this.autoplayTimer = null;
             
             this.config = {
-                autoplay: this.\$wrapper.data('autoplay') === true || this.\$wrapper.data('autoplay') === 'true',
-                autoplaySpeed: this.\$wrapper.data('autoplay-speed') || 5000
+                autoplay: this.$wrapper.data('autoplay') === true || this.$wrapper.data('autoplay') === 'true',
+                autoplaySpeed: this.$wrapper.data('autoplay-speed') || 8000
             };
             
             this.init();
@@ -448,42 +464,44 @@ final class Ajax_Posts_Carousel {
                 this.startAutoplay();
             }
             // Ensure keyboard focusability for arrow keys
-            this.$wrapper.attr('tabindex', '0');
+            this.\$wrapper.attr('tabindex', '0');
         }
         
         bindEvents() {
-            this.\$prevBtn.on('click', () => this.prev());
-            this.\$nextBtn.on('click', () => this.next());
+            var self = this;
             
-            let touchStartX = 0;
-            let touchEndX = 0;
+            this.\$prevBtn.on('click', function() { self.prev(); });
+            this.\$nextBtn.on('click', function() { self.next(); });
             
-            this.\$track.on('touchstart', (e) => {
+            var touchStartX = 0;
+            var touchEndX = 0;
+            
+            this.\$track.on('touchstart', function(e) {
                 touchStartX = e.changedTouches[0].screenX;
-                this.stopAutoplay();
+                self.stopAutoplay();
             });
             
-            this.\$track.on('touchend', (e) => {
+            this.\$track.on('touchend', function(e) {
                 touchEndX = e.changedTouches[0].screenX;
-                this.handleSwipe(touchStartX, touchEndX);
+                self.handleSwipe(touchStartX, touchEndX);
             });
             
-            this.\$wrapper.on('mouseenter', () => this.stopAutoplay());
-            this.\$wrapper.on('mouseleave', () => {
-                if (this.config.autoplay) {
-                    this.startAutoplay();
+            this.\$wrapper.on('mouseenter', function() { self.stopAutoplay(); });
+            this.\$wrapper.on('mouseleave', function() {
+                if (self.config.autoplay) {
+                    self.startAutoplay();
                 }
             });
             
-            this.\$wrapper.on('keydown', (e) => {
-                if (e.key === 'ArrowLeft') {
-                    this.prev();
-                } else if (e.key === 'ArrowRight') {
-                    this.next();
+            this.\$wrapper.on('keydown', function(e) {
+                if (e.key === 'ArrowLeft' || e.keyCode === 37) {
+                    self.prev();
+                } else if (e.key === 'ArrowRight' || e.keyCode === 39) {
+                    self.next();
                 }
             });
             
-            $(window).on('resize', () => this.updateCarousel());
+            $(window).on('resize', function() { self.updateCarousel(); });
         }
         
         handleSwipe(startX, endX) {
@@ -498,23 +516,26 @@ final class Ajax_Posts_Carousel {
         }
         
         createDots() {
+            var self = this;
             this.\$dots.empty();
-            const itemsPerView = this.getItemsPerView();
-            const totalSlides = Math.ceil(this.totalItems / itemsPerView);
+            var itemsPerView = this.getItemsPerView();
+            var totalSlides = Math.ceil(this.totalItems / itemsPerView);
             
-            for (let i = 0; i < totalSlides; i++) {
-                const dot = $('<button class=\"ajax-benefits-dot\" aria-label=\"Ir a slide ' + (i + 1) + '\"></button>');
-                dot.on('click', () => {
-                    this.goToSlide(i * itemsPerView);
-                });
-                this.\$dots.append(dot);
+            for (var i = 0; i < totalSlides; i++) {
+                (function(index) {
+                    var dot = $('<button class=\"ajax-benefits-dot\" aria-label=\"Ir a slide ' + (index + 1) + '\"></button>');
+                    dot.on('click', function() {
+                        self.goToSlide(index * itemsPerView);
+                    });
+                    self.\$dots.append(dot);
+                })(i);
             }
             
             this.updateDots();
         }
         
         updateDots() {
-            const currentSlide = Math.floor(this.currentIndex / this.getItemsPerView());
+            var currentSlide = Math.floor(this.currentIndex / this.getItemsPerView());
             this.\$dots.find('.ajax-benefits-dot').removeClass('active');
             this.\$dots.find('.ajax-benefits-dot').eq(currentSlide).addClass('active');
         }
@@ -525,34 +546,39 @@ final class Ajax_Posts_Carousel {
         }
         
         updateCarousel() {
-            const itemsPerView = this.getItemsPerView();
-            const itemWidth = 100 / itemsPerView;
-            const maxIndex = this.totalItems - itemsPerView;
+            var itemsPerView = this.getItemsPerView();
+            // Fijamos el ancho por tarjeta al 100% para un comportamiento estable
+            var itemWidth = 100;
+            var maxIndex = this.totalItems - itemsPerView;
             
             if (this.currentIndex > maxIndex) {
                 this.currentIndex = Math.max(0, maxIndex);
             }
             
-            const translateX = -(this.currentIndex * itemWidth);
+            var translateX = -(this.currentIndex * itemWidth);
             this.\$track.css('transform', 'translateX(' + translateX + '%)');
-            
-            this.$prevBtn.prop('disabled', this.currentIndex === 0);
-            this.$nextBtn.prop('disabled', false);
+            // Mantener ambos botones siempre habilitados para navegación continua
+            this.\$prevBtn.prop('disabled', false);
+            this.\$nextBtn.prop('disabled', false);
             
             this.updateDots();
         }
         
         prev() {
+            var itemsPerView = this.getItemsPerView();
+            var maxIndex = this.totalItems - itemsPerView;
             if (this.currentIndex > 0) {
                 this.currentIndex--;
-                this.updateCarousel();
-                this.resetAutoplay();
+            } else {
+                this.currentIndex = maxIndex;
             }
+            this.updateCarousel();
+            this.resetAutoplay();
         }
         
         next() {
-            const itemsPerView = this.getItemsPerView();
-            const maxIndex = this.totalItems - itemsPerView;
+            var itemsPerView = this.getItemsPerView();
+            var maxIndex = this.totalItems - itemsPerView;
             
             if (this.currentIndex < maxIndex) {
                 this.currentIndex++;
@@ -564,17 +590,18 @@ final class Ajax_Posts_Carousel {
         }
         
         goToSlide(index) {
-            const itemsPerView = this.getItemsPerView();
-            const maxIndex = this.totalItems - itemsPerView;
+            var itemsPerView = this.getItemsPerView();
+            var maxIndex = this.totalItems - itemsPerView;
             this.currentIndex = Math.max(0, Math.min(index, maxIndex));
             this.updateCarousel();
             this.resetAutoplay();
         }
         
         startAutoplay() {
+            var self = this;
             if (this.config.autoplay) {
-                this.autoplayTimer = setInterval(() => {
-                    this.next();
+                this.autoplayTimer = setInterval(function() {
+                    self.next();
                 }, this.config.autoplaySpeed);
             }
         }
@@ -605,6 +632,9 @@ final class Ajax_Posts_Carousel {
     }
 }
 
-new Ajax_Posts_Carousel();
+// Inicializar el carrusel usando el patrón Singleton
+add_action( 'plugins_loaded', function() {
+    Ajax_Posts_Carousel::get_instance();
+} );
 
 }
