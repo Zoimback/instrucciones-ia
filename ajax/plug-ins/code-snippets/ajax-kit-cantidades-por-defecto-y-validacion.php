@@ -1,8 +1,15 @@
 <?php
+/**
+ * Snippet: Ajax Kit - Cantidades por Defecto y Validación
+ * 
+ * CSS: Etiquetas alineadas y controles visibles
+ * JavaScript: Reordenar, añadir etiquetas, cantidades y precio dinámico
+ */
+
 // CSS: Etiquetas alineadas y controles visibles
 add_action('wp_head', function() {
     if (is_product()) {
-        global $product;
+        $product = wc_get_product(get_queried_object_id());
         if ($product && $product->get_type() === 'grouped') {
             ?>
             <style>
@@ -246,7 +253,7 @@ add_action('wp_head', function() {
 // JavaScript: Reordenar, añadir etiquetas, cantidades y precio dinámico
 add_action('wp_footer', function() {
     if (is_product()) {
-        global $product;
+        $product = wc_get_product(get_queried_object_id());
         if ($product && $product->get_type() === 'grouped') {
             $product_id = $product->get_id();
             $other_kit_url = '';
@@ -260,8 +267,8 @@ add_action('wp_footer', function() {
                 $other_kit_name = 'Ver en Negro →';
             }
             ?>
-            <script>
-            jQuery(document).ready(function($) {
+            <script type="text/javascript">
+            (function() { console.log('AJAX Kit Script Loading...'); var initKitScript = function() { console.log('AJAX Kit Script Executing...'); var $ = jQuery;
                 var productConfig = {
                     112: { order: 1, default: 1, badge: 'required', label: '⚠️ OBLIGATORIO', section: 'hub' },
                     113: { order: 2, default: 1, badge: 'required', label: '⚠️ OBLIGATORIO', section: 'hub' },
@@ -302,17 +309,16 @@ add_action('wp_footer', function() {
                 var $rows = $productList.find('.woocommerce-grouped-product-list-item').detach();
                 
                 // Ocultar todos los precios estáticos
-                $('.summary .price, p.price').remove();
+                $('.wp-block-woocommerce-product-price').hide();
                 
                 // Añadir precio dinámico después del título
                 if (!$('.ajax-dynamic-price').length) {
                     var dynamicPriceHtml = '<div class="ajax-dynamic-price">0,00 €</div>';
-                    $('.product_title').after(dynamicPriceHtml);
+                    $('.product_title, .wp-block-post-title, h1.entry-title').first().after(dynamicPriceHtml);
                 }
                 
                 // Mover descripción al espacio de la galería
-                var description = $('.woocommerce-product-details__short-description').detach();
-                $('.woocommerce-product-gallery').after(description);
+                // Movimiento de descripción omitido - tema FSE no tiene galería clásica
                 
                 <?php if ($other_kit_url): ?>
                 var colorSwitchButton = '<a href="<?php echo esc_js($other_kit_url); ?>" class="ajax-color-switch"><?php echo esc_js($other_kit_name); ?></a>';
@@ -344,7 +350,7 @@ add_action('wp_footer', function() {
                     }
                     
                     var qtyInput = $row.find('input.qty');
-                    if (qtyInput.val() == 0) {
+                    if (qtyInput.val() === '' || qtyInput.val() == 0) {
                         qtyInput.val(config.default);
                     }
                     
@@ -409,9 +415,9 @@ add_action('wp_footer', function() {
                         $('html, body').animate({ scrollTop: $('.ajax-sections-tabs').offset().top - 100 }, 500);
                     }
                 });
-            });
+            }; if (document.readyState === 'complete') { initKitScript(); } else { window.addEventListener('load', initKitScript); } })();
             </script>
             <?php
         }
     }
-});
+}, PHP_INT_MAX);

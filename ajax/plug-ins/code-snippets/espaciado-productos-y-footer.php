@@ -1,9 +1,11 @@
 <?php
 /**
- * Snippet: Espaciado entre productos relacionados y footer
+ * Snippet: Espaciado productos y footer
  * Descripción: Añade margen inferior a las secciones de productos para separarlas del footer
  * Tipo: CSS inline
  * Ubicación: Frontend
+ * 
+ * Etiquetas: front-end
  * 
  * INSTRUCCIONES:
  * 1. Copia este código en Code Snippets (Fragmentos > Añadir nuevo)

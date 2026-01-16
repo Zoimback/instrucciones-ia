@@ -24,17 +24,7 @@ La url de la administración de wordpress es: <url>/wp-admin
 
 
 ## Estructura de la web
-´´´test
-Pagina principal= <url>/
-Pagina kit negro= <url>/
-Pagina kit blanco= <url>/
-Pagina carrito= <url>/
-Pagina de la tienda= <url>/
-Pagina de pago= <url>/
-Pagina de confirmación= <url>/
-Pagina de las cookies= <url>/
-Pagina de la politica de privacidad= <url>/
-´´´
+Para ver todas las paginas de la web ejecuta el comando '<url>/wp-json/wp/v2/pages'
 
 ## Estructura de carpetas
 ´´´ text

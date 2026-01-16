@@ -1,4 +1,13 @@
 <?php
+/**
+ * Snippet: Estilos CSS para Tabla Comparativa
+ * 
+ * Estilos profesionales para la tabla comparativa de Ajax vs Alarmas con cuotas
+ * en la página principal
+ * 
+ * Etiquetas: css, tabla, comparativa, estilos
+ */
+
 add_action('wp_head', function() {
 ?>
 <style>
