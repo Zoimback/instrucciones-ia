@@ -70,7 +70,7 @@ final class Ajax_Posts_Carousel {
             array(
                 'number' => '7',
                 'title'  => 'Instalación rápida y sin obras',
-                'content' => 'Se instala en minutos, sin cables, sin taladros (en la mayoría de casos) y sin necesidad de técnicos.'
+                'content' => 'Se instala en minutos, sin cables, sin necesidad de un técnico que conozca tu instalación. Solo tu sabrás la ubicación de tus elementos de seguridad.'
             ),
         );
     }

@@ -1,12 +1,12 @@
 ---
 name: Central_WordPress
 description: Agente central que coordina tareas de desarrollo WordPress y genera código
-tools: ['edit', 'search', 'new', 'chromedevtools/*', 'wordpress-mcp/*', 'todos', 'usages', 'problems', 'fetch']
+tools: ['read/problems', 'read/readFile', 'edit', 'search', 'web/fetch', 'chromedevtools/*', 'todo']
 argument-hint: Describe la tarea o funcionalidad de WordPress a desarrollar
 handoffs:
   - label: Revisar Código
     agent: Review-WordPress
-    prompt: Por favor, revisa el código generado para asegurar que cumple con los estándares de WordPress y no tiene errores. Solo debes revisar el código nuevo.
+    prompt: Por favor, revisa el código generado para asegurar que cumple con los estándares de WordPress y no tiene errores. Solo debes revisar el código nuevo.º
     send: true
   - label: Testear Código
     agent: Test-WordPress
