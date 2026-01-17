@@ -54,6 +54,18 @@ add_action('wp_head', function() {
                 .woocommerce-grouped-product-list-item__label {
                     order: 2;
                     text-align: left;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 5px;
+                }
+                
+                /* Descripción del producto */
+                .ajax-product-description {
+                    font-size: 12px;
+                    color: #aaa !important;
+                    line-height: 1.4;
+                    margin-top: 5px;
+                    font-weight: 400;
                 }
                 
                 /* Contenedor de precio + badge */
@@ -270,36 +282,38 @@ add_action('wp_footer', function() {
             <script type="text/javascript">
             (function() { console.log('AJAX Kit Script Loading...'); var initKitScript = function() { console.log('AJAX Kit Script Executing...'); var $ = jQuery;
                 var productConfig = {
-                    112: { order: 1, default: 1, badge: 'required', label: '⚠️ OBLIGATORIO', section: 'hub' },
-                    113: { order: 2, default: 1, badge: 'required', label: '⚠️ OBLIGATORIO', section: 'hub' },
-                    114: { order: 3, default: 0, badge: 'premium', label: '⭐ PREMIUM', section: 'hub' },
-                    115: { order: 4, default: 0, badge: 'premium', label: '⭐ PREMIUM', section: 'hub' },
-                    116: { order: 10, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    117: { order: 11, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    127: { order: 12, default: 2, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    126: { order: 13, default: 2, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    125: { order: 14, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    124: { order: 15, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    123: { order: 16, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    122: { order: 17, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    121: { order: 18, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    120: { order: 19, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic' },
-                    128: { order: 30, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    129: { order: 31, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    130: { order: 32, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    131: { order: 33, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    132: { order: 34, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    133: { order: 35, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    134: { order: 36, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    135: { order: 37, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    136: { order: 38, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    137: { order: 39, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    138: { order: 40, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    139: { order: 41, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    140: { order: 42, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    141: { order: 43, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    144: { order: 44, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' },
-                    145: { order: 45, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' }
+                    112: { order: 1, default: 1, badge: 'required', label: '⚠️ OBLIGATORIO', section: 'hub', desc: 'Central de alarma Ajax Hub 2 4G en blanco. Gestiona hasta 100 dispositivos con conectividad 4G/2G integrada y Ethernet. Incluye 2 años de conectividad celular gratuita. Ideal para viviendas y negocios.' },
+                    113: { order: 2, default: 1, badge: 'required', label: '⚠️ OBLIGATORIO', section: 'hub', desc: 'Central de alarma Ajax Hub 2 4G en negro. Gestiona hasta 100 dispositivos con conectividad 4G/2G integrada y Ethernet. Incluye 2 años de conectividad celular gratuita. Ideal para viviendas y negocios.' },
+                    114: { order: 3, default: 0, badge: 'premium', label: '⭐ PREMIUM', section: 'hub', desc: 'Central premium Ajax Hub 2 Plus en blanco. Doble capacidad: hasta 200 dispositivos y usuarios. Comunicación redundante con 2 SIM 4G/2G. Procesador más potente. Actualización de +100€ sobre Hub 2 estándar.' },
+                    115: { order: 4, default: 0, badge: 'premium', label: '⭐ PREMIUM', section: 'hub', desc: 'Central premium Ajax Hub 2 Plus en negro. Doble capacidad: hasta 200 dispositivos y usuarios. Comunicación redundante con 2 SIM 4G/2G. Procesador más potente. Actualización de +100€ sobre Hub 2 estándar.' },
+                    116: { order: 10, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Teclado táctil inalámbrico Ajax en negro. Hasta 99 códigos PIN, vidrio templado, LED multicolor. Batería 4.5 años. Alcance 1700m. Montaje SmartBracket sin herramientas.' },
+                    117: { order: 11, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Teclado táctil inalámbrico Ajax en blanco. Hasta 99 códigos PIN, vidrio templado, LED multicolor. Batería 4.5 años. Alcance 1700m. Montaje SmartBracket sin herramientas.' },
+                    118: { order: 12, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'basic', desc: 'Teclado táctil Ajax Plus en negro con lector NFC. Hasta 99 códigos PIN + tarjetas/tags NFC ilimitados. Batería 3.5 años. Control rápido sin contacto con tecnología DESFire®.' },
+                    119: { order: 13, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'basic', desc: 'Teclado táctil Ajax Plus en blanco con lector NFC. Hasta 99 códigos PIN + tarjetas/tags NFC ilimitados. Batería 3.5 años. Control rápido sin contacto con tecnología DESFire®.' },
+                    120: { order: 19, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Sirena interior Ajax en blanco, 105 dB ajustables. LED indicador, función Chime, tonos personalizables. Batería 5 años. Alcance 2000m. Montaje SmartBracket sin herramientas.' },
+                    121: { order: 18, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Sirena interior Ajax en negro, 105 dB ajustables. LED indicador, función Chime, tonos personalizables. Batería 5 años. Alcance 2000m. Montaje SmartBracket sin herramientas.' },
+                    122: { order: 17, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Mando a distancia Ajax en blanco. 4 botones: armado, noche, desarmado y SOS. Batería 3 años. Alcance 1300m. Compacto con llavero incluido. Protección anti-clonación.' },
+                    123: { order: 16, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Mando a distancia Ajax en negro. 4 botones: armado, noche, desarmado y SOS. Batería 3 años. Alcance 1300m. Compacto con llavero incluido. Protección anti-clonación.' },
+                    124: { order: 15, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Contacto magnético Ajax Plus en blanco con sensor de vibración. Doble detección: apertura + golpes/taladros. Sensibilidad ajustable. Batería 7 años. Montaje rápido SmartBracket.' },
+                    125: { order: 14, default: 1, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Contacto magnético Ajax Plus en negro con sensor de vibración. Doble detección: apertura + golpes/taladros. Sensibilidad ajustable. Batería 7 años. Montaje rápido SmartBracket.' },
+                    126: { order: 13, default: 2, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Detector con cámara Ajax en blanco. Fotos HDR en 9 seg, visión nocturna IR, SmartDetect, inmunidad mascotas 80cm. Batería 5 años. Alcance 12m. Protocolo Wings para transmisión rápida.' },
+                    127: { order: 12, default: 2, badge: 'included', label: '✓ INCLUIDO', section: 'basic', desc: 'Detector con cámara Ajax en negro. Fotos HDR en 9 seg, visión nocturna IR, SmartDetect, inmunidad mascotas 80cm. Batería 5 años. Alcance 12m. Protocolo Wings para transmisión rápida.' },
+                    128: { order: 30, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector de inundación Ajax en blanco. Ultra compacto 14mm, protección IP65, 4 pares de contactos. Batería 5 años. Alcance 1300m. Integración con WaterStop para cierre automático.' },
+                    129: { order: 31, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector de inundación Ajax en negro. Ultra compacto 14mm, protección IP65, 4 pares de contactos. Batería 5 años. Alcance 1300m. Integración con WaterStop para cierre automático.' },
+                    130: { order: 32, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector de movimiento Ajax Plus en blanco con sensor de temperatura y micrófono. SmartDetect, inmunidad mascotas 80cm, alcance 12m. Batería 5 años. Doble verificación anti-falsas alarmas.' },
+                    131: { order: 33, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector de movimiento Ajax Plus en negro con sensor de temperatura y micrófono. SmartDetect, inmunidad mascotas 80cm, alcance 12m. Batería 5 años. Doble verificación anti-falsas alarmas.' },
+                    132: { order: 34, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector combinado Ajax en negro: movimiento (12m) + rotura cristales (9m). Algoritmo DualTone, inmunidad mascotas 80cm, 3 niveles sensibilidad. Batería 5 años. Doble protección en 1 dispositivo.' },
+                    133: { order: 35, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector combinado Ajax en blanco: movimiento (12m) + rotura cristales (9m). Algoritmo DualTone, inmunidad mascotas 80cm, 3 niveles sensibilidad. Batería 5 años. Doble protección en 1 dispositivo.' },
+                    134: { order: 36, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector de rotura de cristales Ajax en blanco. Algoritmo DualTone, alcance 9m, cobertura 180°, 3 niveles sensibilidad. Batería 7 años. Micrófono electret de alta precisión.' },
+                    135: { order: 37, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector de rotura de cristales Ajax en negro. Algoritmo DualTone, alcance 9m, cobertura 180°, 3 niveles sensibilidad. Batería 7 años. Micrófono electret de alta precisión.' },
+                    136: { order: 38, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector exterior Ajax con cámara PhOD en blanco. IP55, temperatura -25°C a +60°C, alcance 15m. Fotos HDR en <9 seg, visión nocturna IR. Inmunidad mascotas 80cm. Batería 4 años.' },
+                    137: { order: 39, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector exterior Ajax con cámara PhOD en negro. IP55, temperatura -25°C a +60°C, alcance 15m. Fotos HDR en <9 seg, visión nocturna IR. Inmunidad mascotas 80cm. Batería 4 años.' },
+                    138: { order: 40, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Tarjeta NFC Ajax Pass en negro. DESFire® EV1, ISO 14443, cifrado AES-128. Compatible KeyPad Plus. Formato cartera estándar. Sin batería, tecnología pasiva. Gestión remota desde app.' },
+                    139: { order: 41, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Tarjeta NFC Ajax Pass en blanco. DESFire® EV1, ISO 14443, cifrado AES-128. Compatible KeyPad Plus. Formato cartera estándar. Sin batería, tecnología pasiva. Gestión remota desde app.' },
+                    140: { order: 42, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Pack 10 llaveros NFC Ajax Tag en blanco. DESFire® EV1, ISO 14443, cifrado AES-128. Compatible KeyPad Plus. Compactos 40mm, resistentes a golpes/agua. Sin batería. Gestión remota app.' },
+                    141: { order: 43, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Pack 10 llaveros NFC Ajax Tag en negro. DESFire® EV1, ISO 14443, cifrado AES-128. Compatible KeyPad Plus. Compactos 40mm, resistentes a golpes/agua. Sin batería. Gestión remota app.' },
+                    144: { order: 44, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector Ajax 3 en 1: humo + calor + CO. Certificado EN 14604/EN 50291. Cámara óptica dual, sensor electroquímico CO. Sirena 85dB, LED RGB. Batería 7 años. Autodiagnóstico 24/7.' },
+                    145: { order: 45, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: 'Detector Ajax 3 en 1: humo + calor + CO. Certificado EN 14604/EN 50291. Cámara óptica dual, sensor electroquímico CO. Sirena 85dB, LED RGB. Batería 7 años. Autodiagnóstico 24/7.' }
                 };
                 
                 // Mapa de precios por producto
@@ -340,7 +354,16 @@ add_action('wp_footer', function() {
                     if (!productId) return;
                     
                     productId = parseInt(productId.match(/\d+/)[0]);
-                    var config = productConfig[productId] || { order: 999, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional' };
+                    var config = productConfig[productId] || { order: 999, default: 0, badge: 'optional', label: 'OPCIONAL', section: 'optional', desc: '' };
+                    
+                    // Añadir descripción del producto debajo del nombre
+                    if (config.desc) {
+                        var labelContainer = $row.find('.woocommerce-grouped-product-list-item__label');
+                        if (labelContainer.length && !labelContainer.find('.ajax-product-description').length) {
+                            var description = '<div class="ajax-product-description">' + config.desc + '</div>';
+                            labelContainer.append(description);
+                        }
+                    }
                     
                     // Extraer precio del producto
                     var priceText = $row.find('.woocommerce-Price-amount bdi').text();
