@@ -326,7 +326,7 @@ add_action('wp_footer', function() {
                 <?php endif; ?>
                 
                 var sectionsTabsHtml = '<div class="ajax-sections-tabs">' +
-                    '<div class="ajax-section-tab hub-tab">🔴 CENTRAL DE ALARMA (Obligatorio - Elige 1)</div>' +
+                    '<div class="ajax-section-tab hub-tab">🔴 CENTRAL DE ALARMA (Obligatorio - Solo 1)</div>' +
                     '<div class="ajax-section-tab basic-tab">✅ KIT BÁSICO (Incluidos por defecto)</div>' +
                     '<div class="ajax-section-tab optional-tab">➕ COMPONENTES OPCIONALES</div>' +
                     '</div>';
@@ -402,17 +402,64 @@ add_action('wp_footer', function() {
                     setTimeout(updateTotalPrice, 100);
                 });
                 
-                // Validación Hub obligatorio
-                $('button.single_add_to_cart_button').on('click', function(e) {
-                    var hubIds = [112, 113, 114, 115], hasHub = false;
+                // Validación Hub obligatorio y solo uno permitido
+                var hubIds = [112, 113, 114, 115];
+                
+                function countSelectedHubs() {
+                    var count = 0;
                     hubIds.forEach(function(id) {
-                        var qty = $('input[name="quantity[' + id + ']"]').val();
-                        if (qty && parseInt(qty) > 0) hasHub = true;
+                        var qty = parseInt($('input[name="quantity[' + id + ']"]').val()) || 0;
+                        if (qty > 0) count += qty;
                     });
-                    if (!hasHub) {
+                    return count;
+                }
+                
+                hubIds.forEach(function(hubId) {
+                    $(document).on('change', 'input[name="quantity[' + hubId + ']"]', function() {
+                        var currentQty = parseInt($(this).val()) || 0;
+                        if (currentQty > 0) {
+                            if (currentQty > 1) { $(this).val(1); currentQty = 1; }
+                            hubIds.forEach(function(otherId) {
+                                if (otherId !== hubId) { $('input[name="quantity[' + otherId + ']"]').val(0); }
+                            });
+                            updateTotalPrice();
+                        }
+                    });
+                });
+                
+                $(document).on('click', '.woocommerce-grouped-product-list-item .quantity button, .woocommerce-grouped-product-list-item .quantity .quantity__button', function() {
+                    var $row = $(this).closest('.woocommerce-grouped-product-list-item');
+                    var $input = $row.find('input.qty');
+                    var inputName = $input.attr('name');
+                    var productId = parseInt(inputName.match(/\d+/)[0]);
+                    
+                    if (hubIds.indexOf(productId) !== -1) {
+                        setTimeout(function() {
+                            var currentQty = parseInt($input.val()) || 0;
+                            if (currentQty > 0) {
+                                if (currentQty > 1) { $input.val(1); }
+                                hubIds.forEach(function(otherId) {
+                                    if (otherId !== productId) { $('input[name="quantity[' + otherId + ']"]').val(0); }
+                                });
+                                updateTotalPrice();
+                            }
+                        }, 50);
+                    }
+                });
+                
+                $('button.single_add_to_cart_button').on('click', function(e) {
+                    var hubCount = countSelectedHubs();
+                    if (hubCount === 0) {
                         e.preventDefault();
-                        alert('⚠️ ¡Hub Obligatorio!\n\nDebes seleccionar al menos 1 Hub antes de añadir el kit al carrito.');
+                        alert('⚠️ ¡Hub Obligatorio!\n\nDebes seleccionar exactamente 1 Hub antes de añadir el kit al carrito.');
                         $('html, body').animate({ scrollTop: $('.ajax-sections-tabs').offset().top - 100 }, 500);
+                        return false;
+                    }
+                    if (hubCount > 1) {
+                        e.preventDefault();
+                        alert('⚠️ ¡Solo un Hub por pedido!\n\nSolo puedes seleccionar 1 Hub por kit. Por favor, elige solo uno.');
+                        $('html, body').animate({ scrollTop: $('.ajax-sections-tabs').offset().top - 100 }, 500);
+                        return false;
                     }
                 });
             }; if (document.readyState === 'complete') { initKitScript(); } else { window.addEventListener('load', initKitScript); } })();
